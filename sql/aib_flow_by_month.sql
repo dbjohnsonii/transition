@@ -1,0 +1,13 @@
+select 
+extract(year from CAST(AB.TRANSACTION_PROCESSING_DATE AS DATE)) AS YEAR--Year
+,extract(month from CAST(AB.TRANSACTION_PROCESSING_DATE AS DATE)) AS MONTH--Month
+,sum(AB.TRANSACTION_FLOW_EUR)
+from FDWO.ACQUIRER_AIB_NEWGEN_FILES ab
+where AB.PROCESSING_STATUS not in ('Suspended')
+and AB.TRANSACTION_TYPE in ('Sale')
+and AB.TRANSACTION_PROCESSING_DATE Between to_date('1/1/2018','MM/DD/YYYY') and to_date('12/31/2018','MM/DD/YYYY')
+and AB.CONTRACT_ID is not null
+group by
+extract(year from CAST(AB.TRANSACTION_PROCESSING_DATE AS DATE))
+,extract(month from CAST(AB.TRANSACTION_PROCESSING_DATE AS DATE))
+order by year,month asc

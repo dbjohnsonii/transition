@@ -1,0 +1,28 @@
+grouped_data=[]
+
+unique_keys=df1['KEY'].drop_duplicates().reset_index(drop=True)
+grp=df1[['ORDERID','KEY','MYAMOUNT','RECEIVEDDATE','KEY_SUBGROUP']][(~df1['KEY'].str.contains('nan'))].copy().reset_index(drop=True) #create the data cluster we're going to make our comparisons
+
+#for x in range(0,len(unique_keys)):
+for x in range(0,len(unique_keys)):
+    grp_dts=grp[(grp['KEY']==unique_keys.iloc[x])] #evaluate the keys
+    grp_dts=grp_dts.sort_values(['KEY','RECEIVEDDATE']).reset_index(drop=True).copy() #sort the values by received date and reset the index
+
+    for y in range(0,len(grp_dts['RECEIVEDDATE'])):
+        grp_dt_ph=grp_dts['RECEIVEDDATE'].iloc[y] #placeholder this is the first date
+        threshold=grp_dt_ph+timedelta(seconds=3600) # set the threshold
+        grp_dts['KEY_SUBGROUP'][(grp_dts['RECEIVEDDATE']<=threshold)&(grp_dts['KEY_SUBGROUP']==0)]=y #iterate through the dataset and when you find
+     
+        grouped_data.append([grp_dts['ORDERID'].iloc[y],grp_dts['KEY'].iloc[y],grp_dts['MYAMOUNT'].iloc[y],grp_dts['RECEIVEDDATE'].iloc[y],grp_dts['KEY_SUBGROUP'].iloc[y]])
+        
+        clear_output() #clear iteration status percentage
+        print(round((x/len(unique_keys))*100,2)) #show iteration status percentage
+
+#setup the data as a dataframe        
+grpd=pd.DataFrame(grouped_data)
+#name the columns of the newly created dataframe accordingly
+grpd=grpd.rename(columns={0:'ORDERID',1:'KEY',2:'MYAMOUNT',3:'RECEIVEDDATE',4:'KEY_SUBGROUP'})
+
+#create a grouped key
+grp_dts['KEY_SUBGROUP']=grp_dts['KEY_SUBGROUP'].astype(str)
+grp_dts['GROUPED_KEY']=grp_dts['KEY']+grp_dts['KEY_SUBGROUP']

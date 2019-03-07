@@ -1,0 +1,33 @@
+Sub ConnectOracle()
+
+Dim cn As ADODB.Connection
+Dim rs As ADODB.Recordset
+Dim mtxData As Variant
+
+Set cn = New ADODB.Connection
+Set rs = New ADODB.Recordset
+
+cn.Open ( _
+"User ID=djohnson" & _
+";Password=Kirky2016!" & _
+";Data Source=ODSPEU1.AMS" & _
+";Provider=OraOLEDB.Oracle")
+
+rs.CursorType = adOpenForwardOnly
+
+rs.Open 
+(
+"select M.CLIENT_NAME,M.CLIENT_ID,M.CONTRACT_ID,GM.PRODUCT_CODE,GM.MONTH,GM.INVOICE_PERIOD,PC.PRODUCT_NAME from FDWO.MB_MERCHANTS m left join FDWO.GM_CALCULATION gm on M.CONTRACT_ID=GM.CONTRACT_ID left join FDWO.MB_PRODUCT_CODE pc on GM.PRODUCT_CODE=PC.PRODUCT_CODE where CLIENT_ID=8508 and GM.MONTH>=to_date('1/1/2018','MM/DD/YYYY') group by M.CLIENT_NAME,M.CLIENT_ID,M.ID,M.CONTRACT_ID,GM.PRODUCT_CODE,GM.MONTH,GM.INVOICE_PERIOD,PC.PRODUCT_NAME"
+), cn
+
+mtxData = Application.Transpose(rs.GetRows)
+
+Worksheets(2).Activate
+ActiveSheet.Range("a1:b120") = mtxData
+
+'Clenaup in the end
+Set rs = Nothing
+Set cn = Nothing
+
+
+End Sub

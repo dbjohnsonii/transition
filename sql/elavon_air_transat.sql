@@ -1,0 +1,49 @@
+select Acquirer,CARD_SCHEME,CARD_TYPE,CARD_DESC,INTERCHANGE_DESC,INTERCH_PERC,INTERCH_FIXED,PRODUCT_NAME,TRANSACTION_TYPE,FLOW_EUR,CARD_CATEGORY
+from
+(
+    select Acquirer,EV.CARD_SCHEME,EV.CARD_TYPE,EV.CARD_DESC,EV.INTERCHANGE_DESC,EV.INTERCH_PERC,EV.INTERCH_FIXED,PRODUCT_NAME,EV.TRANSACTION_TYPE,SUM(EV.FLOW_EUR) AS FLOW_EUR
+    ,case when CARD_DESC in ('VICONSUMER','M/C CONSUM') then 'Consumer'
+    when CARD_DESC in ('VI COMMER','M/C COMMER') then 'Commercial'  
+    when CARD_DESC = 'VISA SIGN' then 'Signature'
+    when CARD_DESC in ('VI DEBIT','M/C DEBIT') then 'Debit'
+    when CARD_DESC in ('WORLD CARD') then 'World'
+    when CARD_DESC in ('M/C FLEET') then 'Fleet'
+    when CARD_DESC in ('M/C PURCH') then 'Purchase'
+    end as CARD_CATEGORY
+    from FDWO.ACQUIRER_ELAVON_USA_COST ev
+    cross join
+    (select 'Elavon' as Acquirer from dual)
+    left join
+    (select PRODUCT_NAME,PRODUCT_CODE from FDWO.MB_PRODUCT_CODE) pc
+    on ev.PRODUCT_CODE=PC.PRODUCT_CODE
+    where EV.MID_NAME like '%AIR TRAN%'
+    and EV.TRANS_DATE between to_date('7/1/2018','MM/DD/YYYY') and to_date('9/30/2018','MM/DD/YYYY')
+    and EV.CARD_SCHEME not in ('VIDE')
+    group by Acquirer,EV.CARD_SCHEME,EV.CARD_TYPE,EV.CARD_DESC,EV.INTERCHANGE_DESC,EV.INTERCHANGE_DESC,EV.INTERCH_PERC,EV.INTERCH_FIXED,EV.TRANSACTION_TYPE,PRODUCT_NAME
+    order by FLOW_EUR desc
+)
+UNION ALL
+select Acquirer,CARD_SCHEME,CARD_TYPE,CARD_DESC,INTERCHANGE_DESC,INTERCH_PERC,INTERCH_FIXED,PRODUCT_NAME,TRANSACTION_TYPE,FLOW_EUR,CARD_CATEGORY
+from
+(
+    select Acquirer,EV.CARD_SCHEME,EV.CARD_TYPE,EV.CARD_DESC,EV.INTERCHANGE_DESC,EV.INTERCH_PERC,EV.INTERCH_FIXED,PRODUCT_NAME,EV.TRANSACTION_TYPE,SUM(FLOW_EUR) AS FLOW_EUR
+    ,case when CARD_DESC in ('VICONSUMER','M/C CONSUM') then 'Consumer'
+    when CARD_DESC in ('VI COMMER','M/C COMMER') then 'Commercial'  
+    when CARD_DESC = 'VISA SIGN' then 'Signature'
+    when CARD_DESC in ('VI DEBIT','M/C DEBIT') then 'Debit'
+    when CARD_DESC in ('WORLD CARD') then 'World'
+    when CARD_DESC in ('M/C FLEET') then 'Fleet'
+    when CARD_DESC in ('M/C PURCH') then 'Purchase'
+    end as CARD_CATEGORY
+    from FDWO.ACQUIRER_ELAVON_USA_COST ev
+    cross join
+    (select 'Elavon' as Acquirer from dual)
+    left join
+    (select PRODUCT_NAME,PRODUCT_CODE from FDWO.MB_PRODUCT_CODE) pc
+    on ev.PRODUCT_CODE=PC.PRODUCT_CODE
+    where EV.MID_NAME like '%AIR TRAN%'
+    and EV.TRANS_DATE between to_date('7/1/2018','MM/DD/YYYY') and to_date('9/30/2018','MM/DD/YYYY')
+    and EV.TRANSACTION_TYPE='CHARGEBACK'
+    group by Acquirer,EV.CARD_SCHEME,EV.CARD_TYPE,EV.CARD_DESC,EV.INTERCHANGE_DESC,EV.INTERCH_PERC,EV.INTERCH_FIXED,PRODUCT_NAME,EV.TRANSACTION_TYPE
+)
+order by FLOW_EUR desc;

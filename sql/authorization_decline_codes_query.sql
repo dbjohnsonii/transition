@@ -1,0 +1,62 @@
+sqlplus/nolog
+connect djohnson/Kirky2016!@ODSPEU1.ams
+set echo off
+set feedback off
+set colsep ';'
+set sqlprompt ''
+set headsep off
+set serveroutput on size unlimited
+set linesize 30000
+set trimspool on
+set pagesize 0
+set heading on
+set trimout on
+set wrap off
+set termout off
+spo U:\auth_declined_codes.txt
+select CC.ORDERID
+,CC.MERCHANTID
+,MM.CLIENT_ID
+,MM.CLIENT_NAME
+,MM.SALES_REGION
+,MM.INVOICE_RELATION_ID
+,sum(CC.effortid) AS EFFORTID
+,sum(CC.ATTEMPTID) AS ATTEMPTID
+,sum(CC.TRYID) AS TRYID
+,CC.RESPONSEID
+,CC.CURRENCY
+,CC.AMOUNT/100 AS AMOUNT
+,EUR
+,CC.CREDITCARDCOMPANY
+,RC.DESCRIPTION,SA.SERVICEACCOUNTNAME,pd.TRANSACTION_TYPE,pd.PRODUCT_CODE
+from EPS.PCO_CREDITCARDONLINE cc
+left join EPS.GPM_ISORESPONSECODE rc
+on CC.RESPONSEID=RC.RESPONSEID
+left join EPS.GPM_SERVICEACCOUNT sa
+on CC.PAYMENTPROCESSOR=SA.PAYMENTPROCESSORNUMBER
+left join FDWO.MB_PAYMENTPROCESSOR pp
+on cc.PAYMENTPROCESSOR=pp.paymentprocessor_id
+left join 
+(select PT.ORDERID,PT.ATTEMPTID,PT.EFFORTID,PT.TRANSACTION_TYPE,PT.PRODUCT_CODE 
+from fdwo.cc_processing_data_pt pt
+where PT.TRANSACTION_DATE between to_date('8/1/2017','MM/DD/YYYY') and to_date('7/31/2018','MM/DD/YYYY')) pd
+on CC.ORDERID = pd.ORDERID
+and CC.ATTEMPTID = pd.ATTEMPTID
+and CC.EFFORTID=pd.ATTEMPTID
+left join FDWO.MB_MERCHANTS mm
+on CAST(CC.MERCHANTID AS varchar2(10))= MM.CONTRACT_ID
+left join
+(select CR.CURRENCY,AVG(CR.AVERAGE_RATE_EUR) AS EUR  
+from fdwo.MB_EXCHANGE_RATES cr 
+where CR.DAY between to_date('8/1/2018','MM/DD/YYYY') and to_date('8/31/2018','MM/DD/YYYY')
+group by CR.CURRENCY) cu
+on CC.CURRENCY=cu.CURRENCY
+where CC.RESPONSEID in (4,14,15,41,43,54)
+and CC.CREDITCARDCOMPANY='ECMC'
+and CC.AUTHORISATIONDATETIME between to_date('8/1/2017','MM/DD/YYYY') and to_date('7/31/2018','MM/DD/YYYY')
+and pp.interchange_region IN('NorthAm')
+and pd.TRANSACTION_TYPE='TRANSACTION'
+group by CC.ORDERID,CC.RESPONSEID,CC.AMOUNT,CC.CREDITCARDCOMPANY
+,RC.DESCRIPTION,SA.SERVICEACCOUNTNAME,pd.TRANSACTION_TYPE,CC.MERCHANTID
+,MM.CLIENT_ID,MM.CLIENT_NAME,MM.SALES_REGION,pd.PRODUCT_CODE,CC.CURRENCY,MM.INVOICE_RELATION_ID,EUR;
+spo end

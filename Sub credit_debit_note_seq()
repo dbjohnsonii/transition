@@ -1,0 +1,219 @@
+Sub credit_debit_note_seq()
+
+Dim i As Integer
+Dim k As Integer
+Dim q As Integer
+
+k = (Range("A2").End(xlDown).Row) - 2
+q = k * -1
+
+'build_the_1st_column
+Range("p1").Select
+Selection = "Corr % fee" 'title
+'cell_color
+    With Selection.Interior
+        .Pattern = xlSolid
+        .PatternColorIndex = xlAutomatic
+        .Color = 15773696
+        .TintAndShade = 0
+        .PatternTintAndShade = 0
+    End With
+Selection.Font.Name = "Arial" 'cell_font
+Selection.Font.Size = 8 'cell_font_size
+Selection.Font.Color = vbWhite 'cell_font_color
+Selection.Font.Bold = True
+
+'build_the_2nd_column
+Range("q1").Select
+Selection = "Corr Inv" 'title
+'cell_color
+    With Selection.Interior
+        .Pattern = xlSolid
+        .PatternColorIndex = xlAutomatic
+        .Color = 15773696
+        .TintAndShade = 0
+        .PatternTintAndShade = 0
+    End With
+Selection.Font.Name = "Arial" 'cell_font
+Selection.Font.Size = 8 'cell_font_size
+Selection.Font.Color = vbWhite 'cell_font_color
+Selection.Font.Bold = True
+
+'Build the 3rd column
+Range("r1").Select
+Selection = "Difference" 'title
+'cell_color
+    With Selection.Interior
+        .Pattern = xlSolid
+        .PatternColorIndex = xlAutomatic
+        .Color = 15773696
+        .TintAndShade = 0
+        .PatternTintAndShade = 0
+    End With
+Selection.Font.Name = "Arial" 'cell_font
+Selection.Font.Size = 8 'cell_font_size
+Selection.Font.Color = vbWhite 'cell_font_color
+Selection.Font.Bold = True
+
+'Open the workbooks for EUR and GBP product code references
+Workbooks.Open ("G:\Pricing\debit_credit_note_products\eur.xlsx")
+Workbooks.Open ("G:\Pricing\debit_credit_note_products\gbp.xlsx")
+
+'Build a "for loop" that runs a conditional vlookup that selects from either
+'the EUR or GBP product tables
+
+Windows("Book1.xlsm").Activate
+Range("p2").Select
+For i = 1 To k
+ActiveCell.FormulaR1C1 = "=IF(RC[-12]=""EUR"",IFERROR(VLOOKUP(RC[-9],eur.xlsx!R2C1:R91C4,4,FALSE),0),IF(RC[-12]=""GBP"",IFERROR((VLOOKUP(RC[-9],gbp.xlsx!R2C1:R91C4,4,FALSE)),0)))"
+ActiveCell.Offset(1, 0).Select
+Next i
+
+Range("p3", Range("p3").End(xlDown)).Copy
+Range("p3", Range("p3").End(xlDown)).Select
+Selection.PasteSpecial Paste:=xlPasteValues, Operation:=xlNone, SkipBlanks _
+:=False, Transpose:=False
+Selection.NumberFormat = "_(* #,##0.00_);_(* (#,##0.00);_(* ""-""??_);_(@_)"
+Range("p2").NumberFormat = "_(* #,##0.00_);_(* (#,##0.00);_(* ""-""??_);_(@_)"
+
+'Create the subtotal borders
+Range("p2").End(xlDown).Offset(1, 0).Select
+    Selection.Borders(xlDiagonalDown).LineStyle = xlNone
+    Selection.Borders(xlDiagonalUp).LineStyle = xlNone
+    Selection.Borders(xlEdgeLeft).LineStyle = xlNone
+    With Selection.Borders(xlEdgeTop)
+        .LineStyle = xlDashDot
+        .ColorIndex = 0
+        .TintAndShade = 0
+        .Weight = xlThin
+    End With
+    With Selection.Borders(xlEdgeBottom)
+        .LineStyle = xlDashDot
+        .ColorIndex = 0
+        .TintAndShade = 0
+        .Weight = xlThin
+    End With
+    Selection.Borders(xlEdgeRight).LineStyle = xlNone
+    Selection.Borders(xlInsideVertical).LineStyle = xlNone
+    Selection.Borders(xlInsideHorizontal).LineStyle = xlNone
+    
+'Cell color
+
+    With Selection.Interior
+        .Pattern = xlSolid
+        .PatternColorIndex = xlAutomatic
+        .ThemeColor = xlThemeColorDark1
+        .TintAndShade = -0.149998474074526
+        .PatternTintAndShade = 0
+    End With
+
+'Build a "for loop" that runs a conditional vlookup that selects from either
+'the EUR or GBP product tables
+
+Range("q2").Select
+For i = 1 To k
+ActiveCell.FormulaR1C1 = "=RC[-1]*RC[-4]"
+ActiveCell.Offset(1, 0).Select
+Next i
+
+Range("q3", Range("q3").End(xlDown)).Copy
+Range("q3", Range("q3").End(xlDown)).Select
+Selection.PasteSpecial Paste:=xlPasteValues, Operation:=xlNone, SkipBlanks _
+:=False, Transpose:=False
+Selection.NumberFormat = "_(* #,##0.00_);_(* (#,##0.00);_(* ""-""??_);_(@_)"
+Range("q2").NumberFormat = "_(* #,##0.00_);_(* (#,##0.00);_(* ""-""??_);_(@_)"
+
+'Create the subtotal borders
+Range("q2").End(xlDown).Offset(1, 0).Select
+    Selection.Borders(xlDiagonalDown).LineStyle = xlNone
+    Selection.Borders(xlDiagonalUp).LineStyle = xlNone
+    Selection.Borders(xlEdgeLeft).LineStyle = xlNone
+    With Selection.Borders(xlEdgeTop)
+        .LineStyle = xlDashDot
+        .ColorIndex = 0
+        .TintAndShade = 0
+        .Weight = xlThin
+    End With
+    With Selection.Borders(xlEdgeBottom)
+        .LineStyle = xlDashDot
+        .ColorIndex = 0
+        .TintAndShade = 0
+        .Weight = xlThin
+    End With
+    Selection.Borders(xlEdgeRight).LineStyle = xlNone
+    Selection.Borders(xlInsideVertical).LineStyle = xlNone
+    Selection.Borders(xlInsideHorizontal).LineStyle = xlNone
+    
+'Cell color
+
+    With Selection.Interior
+        .Pattern = xlSolid
+        .PatternColorIndex = xlAutomatic
+        .ThemeColor = xlThemeColorDark1
+        .TintAndShade = -0.149998474074526
+        .PatternTintAndShade = 0
+    End With
+
+
+'Build a "for loop" that runs a conditional vlookup that selects from either
+'the EUR or GBP product tables
+
+Range("r2").Select
+For i = 1 To k
+ActiveCell.FormulaR1C1 = "=RC[-1]-RC[-3]"
+ActiveCell.Offset(1, 0).Select
+Next i
+
+Range("r3", Range("r3").End(xlDown)).Copy
+Range("r3", Range("r3").End(xlDown)).Select
+Selection.PasteSpecial Paste:=xlPasteValues, Operation:=xlNone, SkipBlanks _
+:=False, Transpose:=False
+Selection.NumberFormat = "_(* #,##0.00_);_(* (#,##0.00);_(* ""-""??_);_(@_)"
+Range("r2").NumberFormat = "_(* #,##0.00_);_(* (#,##0.00);_(* ""-""??_);_(@_)"
+
+'Create the subtotal borders
+Range("r2").End(xlDown).Offset(1, 0).Select
+    Selection.Borders(xlDiagonalDown).LineStyle = xlNone
+    Selection.Borders(xlDiagonalUp).LineStyle = xlNone
+    Selection.Borders(xlEdgeLeft).LineStyle = xlNone
+    With Selection.Borders(xlEdgeTop)
+        .LineStyle = xlDashDot
+        .ColorIndex = 0
+        .TintAndShade = 0
+        .Weight = xlThin
+    End With
+    With Selection.Borders(xlEdgeBottom)
+        .LineStyle = xlDashDot
+        .ColorIndex = 0
+        .TintAndShade = 0
+        .Weight = xlThin
+    End With
+    Selection.Borders(xlEdgeRight).LineStyle = xlNone
+    Selection.Borders(xlInsideVertical).LineStyle = xlNone
+    Selection.Borders(xlInsideHorizontal).LineStyle = xlNone
+
+'Cell Color
+
+    With Selection.Interior
+        .Pattern = xlSolid
+        .PatternColorIndex = xlAutomatic
+        .ThemeColor = xlThemeColorDark1
+        .TintAndShade = -0.149998474074526
+        .PatternTintAndShade = 0
+    End With
+
+'Remove marching ants from around the copied range
+Application.CutCopyMode = False
+
+'Build the sheet subtotal
+Range("r3").End(xlDown).Offset(1, 0).Select
+ActiveCell.FormulaR1C1 = "=SUBTOTAL(9,R[" & q & "]C:R[-1]C)"
+
+'Close the workbooks for EUR and GBP product code references
+Workbooks("eur.xlsx").Close SaveChanges:=False
+Workbooks("gbp.xlsx").Close SaveChanges:=False
+
+'Rest here
+Range("a1").Select
+
+End Sub

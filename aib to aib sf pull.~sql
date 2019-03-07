@@ -1,0 +1,20 @@
+SELECT ab.merchant_reference
+,ab.trading_merchant_id,ab.trading_merchant_name,ab.clearing_mcc_code
+,ab.transaction_processing_date,ab.transaction_currency,ab.transaction_amount_trx_curr
+,ab.interchange_rate_description,ab.issuer_bin
+,ab.card_brand,ab.contract_id,ab.issuer_country,ab.clearing_country_name,
+
+CASE WHEN ab.card_type_group LIKE '%Debit%' THEN 'Debit'
+WHEN ab.card_type_group LIKE '%Credit%' THEN 'Credit'
+WHEN ab.card_type_group LIKE '%Prepaid%' THEN 'Prepaid'
+END AS "CREDIT_DEBIT",
+
+CASE WHEN ab.card_type_group LIKE '%Consumer%' THEN 'Consumer'
+WHEN ab.card_type_group LIKE '%Commercial%' THEN 'Commercial'
+END AS "CARD_TYPE",
+
+ABS(ab.scheme_fee_eur) AS SF
+
+FROM fdwo.acquirer_aib_newgen_files ab
+WHERE ab.transaction_processing_date = TO_DATE ('2017/12/13', 'yyyy/mm/dd')
+AND ab.transaction_type='Sale'

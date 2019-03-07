@@ -1,0 +1,21 @@
+select ACQUIRER,EARLIEST_DATE,LATEST_DATE,OUTLET_TRADING_NAME,CONTRACT_ID,FLOW_EUR,(FLOW_EUR/12) AS MONTHLY_AVERAGE_EUR
+from(
+    select ACQUIRER,MIN(DATA_MONTH) AS EARLIEST_DATE,MAX(DATA_MONTH) AS LATEST_DATE,B2.OUTLET_TRADING_NAME,B2.CONTRACT_ID,SUM(B2.FLOW_EUR_TYPE_SPECIFIC) AS FLOW_EUR
+    from FDWO.ACQUIRER_BARCLAYS_COST_2017 b2
+    cross join (select 'BARCLAYS' as ACQUIRER from dual)
+    where B2.CONTRACT_ID in (7027,6498,7769,8050,6956,7228)
+    and B2.TRANSACTION_TYPE in ('TRANSACTION')
+    and B2.COST_TYPE in ('INTERCHANGE')
+    and B2.DATA_MONTH between to_date('11/1/2017','MM/DD/YYYY') and to_date('10/31/2018','MM/DD/YYYY')
+    group by B2.OUTLET_TRADING_NAME,B2.CONTRACT_ID,ACQUIRER
+    UNION ALL
+    select ACQUIRER,MIN(transaction_date) AS EARLIEST_DATE,MAX(transaction_date) AS LATEST_DATE,A.TRADING_MERCHANT_NAME,A.CONTRACT_ID,sum(A.TRANSACTION_FLOW_EUR) AS FLOW_EUR
+    from FDWO.ACQUIRER_AIB_NEWGEN_FILES a
+    cross join (select 'AIB' as ACQUIRER from dual)
+    where processing_status not in ('Suspended')
+    and transaction_type in ('Sale')
+    and transaction_date between to_date('11/1/2017','MM/DD/YYYY') and to_date('10/31/2018','MM/DD/YYYY')
+    and A.CONTRACT_ID in ('7027','6498','7769','8050','6956','7228')
+    group by ACQUIRER,A.TRADING_MERCHANT_NAME,A.CONTRACT_ID
+)
+order by flow_eur,acquirer desc

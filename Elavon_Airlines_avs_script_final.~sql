@@ -1,0 +1,65 @@
+SELECT 
+  t1.mid_name,t1.roc_text,t1.paymentreference,t1.orderid,t1.trans_date
+ ,t1.receiveddate,t2.AUTHORISATIONDATETIME,t2.DATEAUTHORISATION,t1.statusdate,t1.transaction_type 
+ ,t1.interchange_desc,t1.card_scheme,t1.card_type,t1.card_desc,t1.charge_type
+ ,t1.issuing_ctry,t1.issuing_region  
+ ,t1.interch_perc,t1.interch_fixed,t2.CREDITDEBITINDICATOR
+ ,t1.flow_usd,t2.AMOUNT
+ ,t2.CVVINDICATOR,t2.CVVRESULT,t2.CVVSERVICEINDICATOR  
+ ,t2.AVS,t2.AVSINDICATOR,t2.AVSRESULT
+ ,t2.FRAUDCODE,t2.FRAUDINDICATOR,t2.FRAUDRESULT
+ ,t2.name,t2.street,t2.housenumber,t2.additionaladdressinfo,t2.zip,t2.city,t2.state
+ ,
+CASE WHEN t2.CVVINDICATOR = 1 then 'CVV Checked'
+WHEN t2.CVVINDICATOR <> 1 then 'CVV Not Checked'
+END AS "CVVINDICATOR",
+
+CASE WHEN t2.CVVRESULT = 'M' THEN 'CVV Match'
+WHEN t2.CVVRESULT = 'N' THEN 'CVV NoMatch'
+WHEN t2.CVVRESULT not in ('N','M') THEN 'CVV Unknown'
+END AS "CVVRESULT",
+
+CASE WHEN t2.AVSRESULT in ('Z','A','W','D') THEN 'Partial AVS'
+WHEN t2.AVSRESULT in ('X','Y','M','F','P') THEN 'Full AVS'
+WHEN t2.AVSRESULT in ('N') THEN 'Neither ZIP nor address match'
+WHEN t2.AVSRESULT in ('I') THEN 'Information not verified for international transaction'
+WHEN t2.AVSRESULT in ('U','\','R','0','S') THEN 'Unsupp/Inconc AVS'
+END AS "AVSRESULT"
+
+FROM
+(
+   SELECT 
+   ev.roc_text,ev.mid_name,ev.card_scheme,ev.card_type,ev.card_desc,ev.charge_type,ev.interchange_desc
+  ,ev.issuing_ctry,ev.issuing_region,ev.volume,ev.flow,ev.interch_perc,ev.interch_fixed,ev.trans_date
+  ,pa.receiveddate,pa.statusdate,ev.transaction_type,pa.paymentamount
+  ,ev.flow_usd,pa.orderid,pa.paymentreference,pa.statusid
+  ,ev.contract_id
+  FROM 
+  fdwo.acquirer_elavon_usa_cost ev
+  LEFT JOIN 
+  eps.opr_paymentattempt pa
+  ON
+  TO_CHAR(ev.roc_text)=pa.paymentreference  
+  WHERE ev.transaction_type='TRANSACTION'
+  AND ev.roc_text IS NOT NULL
+  AND ev.trans_date BETWEEN TO_DATE('11/01/2017','MM/DD/YYYY') AND TO_DATE('12/31/2017','MM/DD/YYYY')
+  AND pa.statusid=1050
+  )t1
+  LEFT JOIN
+  (
+  SELECT 
+   co.merchantid,co.orderid,co.AUTHORISATIONDATETIME,co.DATEAUTHORISATION,co.CREDITCARDCOMPANY
+  ,co.CREDITDEBITINDICATOR,co.CVVINDICATOR,co.CVVRESULT,co.CVVSERVICEINDICATOR  
+  ,co.avs
+  ,co.AVSINDICATOR,co.AVSRESULT,co.FRAUDCODE,co.FRAUDINDICATOR,co.FRAUDRESULT
+  ,co.AUTHORISEDCURRENCYCODE,co.AUTHORISEDAMOUNT,co.Amount/100 AS AMOUNT
+  ,co.name,co.street,co.housenumber,co.additionaladdressinfo,co.zip,co.city,co.state
+  
+  FROM eps.pco_creditcardonline co
+  )t2
+  ON t1.orderid=t2.orderid
+  AND t1.contract_id=t2.merchantid
+  AND t1.FLOW_USD=t2.AMOUNT
+
+
+ 
